@@ -1,14 +1,12 @@
-#include <SFML/Graphics.hpp>
-
 #include "Game.h"
-#include "TestScene.h"
+#include "GameScenes.h"
 
 int main()
 {
-    TestScene* ts = new TestScene();
+    IScene* s = new PlayScene();
     Game g;
 
-    g.Init(800, 600, "testing", ts);
+    g.Init(800, 600, "testing", s);
     g.Run();
     g.Quit();
     return g.GetExitStatus();
