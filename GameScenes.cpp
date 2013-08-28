@@ -13,6 +13,8 @@
 #include "CollisionSystem.h"
 #include "BehaviorSystem.h"
 
+#include "SnakeSystem.h"
+
 #include "PositionComponent.h"
 #include "MovementComponent.h"
 #include "ColliderComponent.h"
@@ -23,6 +25,7 @@
 
 bool PlayScene::Load()
 {
+    sf::Clock clock;
     ISystem* s = nullptr;
 
     s = new RenderSystem();
@@ -37,6 +40,9 @@ bool PlayScene::Load()
     s = new BehaviorSystem();
     sm.Add(s);
 
+    s = new SnakeSystem();
+    sm.Add(s);
+
     s = nullptr;
 
     ef.Register("Position", []() { return new PositionComponent(); });
@@ -46,6 +52,11 @@ bool PlayScene::Load()
     ef.Register("Rectangle", []() { return new RectangleComponent(); });
     ef.Register("Text", []() { return new TextComponent(); });
     ef.Register("Sprite", []() { return new SpriteComponent(); });
+
+    ef.Create("scripts/snake head.lua", 100, 100);
+
+    srand(clock.getElapsedTime().asMicroseconds());
+    ef.Create("scripts/coin.lua", rand() % this->GetWindow()->getSize().x, rand() % this->GetWindow()->getSize().y);
 
     return true;
 }
