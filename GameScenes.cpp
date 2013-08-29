@@ -14,6 +14,7 @@
 #include "BehaviorSystem.h"
 
 #include "SnakeSystem.h"
+#include "CoinSystem.h"
 
 #include "PositionComponent.h"
 #include "MovementComponent.h"
@@ -41,6 +42,9 @@ bool PlayScene::Load()
     sm.Add(s);
 
     s = new SnakeSystem();
+    sm.Add(s);
+
+    s = new CoinSystem();
     sm.Add(s);
 
     s = nullptr;

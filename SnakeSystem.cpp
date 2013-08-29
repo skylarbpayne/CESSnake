@@ -56,11 +56,11 @@ void SnakeSystem::Update(unsigned int dt)
     }
 
     _Accumulator += dt;
-    if(_Accumulator < sf::milliseconds(333).asMicroseconds())
+    if(_Accumulator < sf::milliseconds(200).asMicroseconds())
     {
         return;
     }
-    _Accumulator -= sf::milliseconds(333).asMicroseconds();
+    _Accumulator -= sf::milliseconds(200).asMicroseconds();
 
     MoveEntityMessage msg;
     msg.ID = _Head;
@@ -92,8 +92,20 @@ bool SnakeSystem::ValidateEntity(unsigned int ID)
 
     if(strcmp(e->GetTag(), "Body") == 0)
     {
-        Entity* head = this->GetEntity(_Head);
-        sf::Vector2f pos = head->GetComponent<PositionComponent>("Position")->GetPosition();
+        Entity* node = nullptr;
+
+        if(_SnakeBody.empty())
+        {
+            node = this->GetEntity(_Head);
+        }
+
+        else
+        {
+            node = this->GetEntity(_SnakeBody.front());
+        }
+
+        sf::Vector2f pos = node->GetComponent<PositionComponent>("Position")->GetPosition();
+
 
         if(_HeadDirection.x < 0)
         {
@@ -116,6 +128,7 @@ bool SnakeSystem::ValidateEntity(unsigned int ID)
         }
 
         _SnakeBody.push_front(ID);
+
         MoveEntityMessage msg;
         msg.ID = ID;
         msg.newPosition = pos;
@@ -138,9 +151,5 @@ void SnakeSystem::OnMessage(CollisionMessage &msg)
         CreateEntityMessage cmsg;
         cmsg.script = "scripts/snake body.lua";
         Emit<CreateEntityMessage>(cmsg);
-
-        DestroyEntityMessage dmsg;
-        dmsg.ID = msg.ID2;
-        Emit<DestroyEntityMessage>(dmsg);
     }
 }

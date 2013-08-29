@@ -10,7 +10,6 @@
 
 #include <list>
 #include "ISystem.h"
-#include "ISystem.h"
 
 class SnakeSystem : public ISystem, public IListener<CollisionMessage>
 {
