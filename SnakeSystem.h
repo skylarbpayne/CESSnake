@@ -15,9 +15,12 @@
 class SnakeSystem : public ISystem, public IListener<CollisionMessage>
 {
 private:
-    std::list<unsigned int> _Snake;
+    unsigned int _Accumulator;
+    unsigned int _Head;
+    sf::Vector2i _HeadDirection;
+    std::list<unsigned int> _SnakeBody;
 public:
-    SnakeSystem() : ISystem("Snake") { }
+    SnakeSystem();
 
     void Update(unsigned int dt) override;
     bool ValidateEntity(unsigned int ID) override;

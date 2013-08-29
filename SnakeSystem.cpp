@@ -9,83 +9,122 @@
 #include "SnakeSystem.h"
 #include "Entity.h"
 #include "PositionComponent.h"
-#include "MovementComponent.h"
 #include "IListener.h"
 #include <cstring>
 
+#include "Logger.h"
+
+/**
+ * @brief SnakeSystem::SnakeSystem Sets default values for the system
+ */
+SnakeSystem::SnakeSystem() : ISystem("Snake"), _Accumulator(0)
+{
+    _HeadDirection.x = 1;
+    _HeadDirection.y = 0;
+    _SnakeBody.clear();
+}
+
+/**
+ * @brief SnakeSystem::Update updates the direction of the snake and also moves it
+ * @param dt the amount of time since last frame
+ */
 void SnakeSystem::Update(unsigned int dt)
 {
-    std::list<unsigned int>::iterator it = _Snake.begin();
-    Entity* e1 = this->GetEntity(*it);
-    Entity* e2 = nullptr;
-    PushEntityMessage msg;
-
-    for(++it; it != _Snake.end(); it++)
+    if(sf::Keyboard::isKeyPressed(sf::Keyboard::W) && _HeadDirection.y != 1)
     {
-        e2 = this->GetEntity(*it);
-        msg.ID = *it;
-        sf::Vector2f pos1 = e1->GetComponent<PositionComponent>("Position")->GetPosition();
-        sf::Vector2f pos2 = e2->GetComponent<PositionComponent>("Position")->GetPosition();
-        msg.newVelocity = pos1 - pos2;
+        _HeadDirection.y = -1;
+        _HeadDirection.x = 0;
 
-        if(fabs(msg.newVelocity.x) > fabs(msg.newVelocity.y))
-        {
-            msg.newVelocity.y = 0;
-            msg.newVelocity.x /= abs(msg.newVelocity.x);
-            msg.newVelocity.x *= 5;
-        }
+    }
 
-        else
-        {
-            msg.newVelocity.x = 0;
-            msg.newVelocity.y /= abs(msg.newVelocity.y);
-            msg.newVelocity.y *= 5;
-        }
+    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::S) && _HeadDirection.y != -1)
+    {
+        _HeadDirection.y = 1;
+        _HeadDirection.x = 0;
+    }
 
-        Emit<PushEntityMessage>(msg);
+    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::A) && _HeadDirection.x != 1)
+    {
+        _HeadDirection.x = -1;
+        _HeadDirection.y = 0;
+    }
+
+    else if(sf::Keyboard::isKeyPressed(sf::Keyboard::D) && _HeadDirection.x != -1)
+    {
+        _HeadDirection.x = 1;
+        _HeadDirection.y = 0;
+    }
+
+    _Accumulator += dt;
+    if(_Accumulator < sf::milliseconds(333).asMicroseconds())
+    {
+        return;
+    }
+    _Accumulator -= sf::milliseconds(333).asMicroseconds();
+
+    MoveEntityMessage msg;
+    msg.ID = _Head;
+
+    Entity* head = this->GetEntity(_Head);
+
+    msg.newPosition = head->GetComponent<PositionComponent>("Position")->GetPosition();
+    msg.newPosition.x += _HeadDirection.x * 20.f;
+    msg.newPosition.y += _HeadDirection.y * 20.f;
+
+    Emit<MoveEntityMessage>(msg);
+
+    if(!_SnakeBody.empty())
+    {
+
+        msg.ID = _SnakeBody.front();
+        msg.newPosition.x -= _HeadDirection.x * 20.f;
+        msg.newPosition.y -= _HeadDirection.y * 20.f;
+        Emit<MoveEntityMessage>(msg);
+
+        _SnakeBody.pop_front();
+        _SnakeBody.push_back(msg.ID);
     }
 }
 
 bool SnakeSystem::ValidateEntity(unsigned int ID)
 {
     Entity* e = this->GetEntity(ID);
-    if(strcmp(e->GetTag(), "Body") == 0 || strcmp(e->GetTag(), "Head") == 0)
+
+    if(strcmp(e->GetTag(), "Body") == 0)
     {
-        if(_Snake.empty())
-        {
-            _Snake.push_back(ID);
-            return false;
-        }
+        Entity* head = this->GetEntity(_Head);
+        sf::Vector2f pos = head->GetComponent<PositionComponent>("Position")->GetPosition();
 
-        Entity* tail = this->GetEntity(_Snake.back());
-        sf::Vector2f pos = tail->GetComponent<PositionComponent>("Position")->GetPosition();
-        sf::Vector2f const& vel = tail->GetComponent<MovementComponent>("Movement")->GetVelocity();
-
-        if(vel.x < 0)
+        if(_HeadDirection.x < 0)
         {
             pos.x += 20;
         }
 
-        else if(vel.x > 0)
+        else if(_HeadDirection.x > 0)
         {
             pos.x -= 20;
         }
 
-        else if(vel.y < 0)
+        else if(_HeadDirection.y < 0)
         {
             pos.y += 20;
         }
 
-        else if(vel.y > 0)
+        else if(_HeadDirection.y > 0)
         {
             pos.y -= 20;
         }
 
-        _Snake.push_back(ID);
+        _SnakeBody.push_front(ID);
         MoveEntityMessage msg;
         msg.ID = ID;
         msg.newPosition = pos;
         Emit<MoveEntityMessage>(msg);
+    }
+
+    if(strcmp(e->GetTag(), "Head") == 0)
+    {
+        _Head = ID;
     }
 
     return false;
