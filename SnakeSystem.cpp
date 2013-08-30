@@ -21,6 +21,7 @@ SnakeSystem::SnakeSystem() : ISystem("Snake"), _Accumulator(0)
 {
     _HeadDirection.x = 1;
     _HeadDirection.y = 0;
+    _NewPart = false;
     _SnakeBody.clear();
 }
 
@@ -56,11 +57,11 @@ void SnakeSystem::Update(unsigned int dt)
     }
 
     _Accumulator += dt;
-    if(_Accumulator < sf::milliseconds(200).asMicroseconds())
+    if(_Accumulator < sf::milliseconds(100).asMicroseconds())
     {
         return;
     }
-    _Accumulator -= sf::milliseconds(200).asMicroseconds();
+    _Accumulator -= sf::milliseconds(100).asMicroseconds();
 
     MoveEntityMessage msg;
     msg.ID = _Head;
@@ -73,16 +74,29 @@ void SnakeSystem::Update(unsigned int dt)
 
     Emit<MoveEntityMessage>(msg);
 
-    if(!_SnakeBody.empty())
+    if(_NewPart)
     {
+        _NewPart = false;
+        CreateEntityMessage cmsg;
+        cmsg.script = "scripts/snake body.lua";
+        cmsg.position.x = msg.newPosition.x - _HeadDirection.x * 20.f;
+        cmsg.position.y = msg.newPosition.y - _HeadDirection.y * 20.f;
+        Emit<CreateEntityMessage>(cmsg);
+    }
 
-        msg.ID = _SnakeBody.front();
-        msg.newPosition.x -= _HeadDirection.x * 20.f;
-        msg.newPosition.y -= _HeadDirection.y * 20.f;
-        Emit<MoveEntityMessage>(msg);
+    else
+    {
+        if(!_SnakeBody.empty())
+        {
 
-        _SnakeBody.pop_front();
-        _SnakeBody.push_back(msg.ID);
+            msg.ID = _SnakeBody.front();
+            msg.newPosition.x -= _HeadDirection.x * 20.f;
+            msg.newPosition.y -= _HeadDirection.y * 20.f;
+            Emit<MoveEntityMessage>(msg);
+
+            _SnakeBody.pop_front();
+            _SnakeBody.push_back(msg.ID);
+        }
     }
 }
 
@@ -92,47 +106,7 @@ bool SnakeSystem::ValidateEntity(unsigned int ID)
 
     if(strcmp(e->GetTag(), "Body") == 0)
     {
-        Entity* node = nullptr;
-
-        if(_SnakeBody.empty())
-        {
-            node = this->GetEntity(_Head);
-        }
-
-        else
-        {
-            node = this->GetEntity(_SnakeBody.front());
-        }
-
-        sf::Vector2f pos = node->GetComponent<PositionComponent>("Position")->GetPosition();
-
-
-        if(_HeadDirection.x < 0)
-        {
-            pos.x += 20;
-        }
-
-        else if(_HeadDirection.x > 0)
-        {
-            pos.x -= 20;
-        }
-
-        else if(_HeadDirection.y < 0)
-        {
-            pos.y += 20;
-        }
-
-        else if(_HeadDirection.y > 0)
-        {
-            pos.y -= 20;
-        }
-
-        _SnakeBody.push_front(ID);
-
-        MoveEntityMessage msg;
-        msg.ID = ID;
-        msg.newPosition = pos;
-        Emit<MoveEntityMessage>(msg);
+        _SnakeBody.push_back(ID);
     }
 
     if(strcmp(e->GetTag(), "Head") == 0)
@@ -148,8 +122,6 @@ void SnakeSystem::OnMessage(CollisionMessage &msg)
     Entity* c = this->GetEntity(msg.ID2);
     if(strcmp(c->GetTag(), "Coin") == 0)
     {
-        CreateEntityMessage cmsg;
-        cmsg.script = "scripts/snake body.lua";
-        Emit<CreateEntityMessage>(cmsg);
+        _NewPart = true;
     }
 }

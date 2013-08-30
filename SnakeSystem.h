@@ -15,6 +15,7 @@ class SnakeSystem : public ISystem, public IListener<CollisionMessage>
 {
 private:
     unsigned int _Accumulator;
+    bool _NewPart;
     unsigned int _Head;
     sf::Vector2i _HeadDirection;
     std::list<unsigned int> _SnakeBody;
