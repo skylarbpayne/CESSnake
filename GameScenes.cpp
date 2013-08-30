@@ -29,13 +29,13 @@ bool PlayScene::Load()
     sf::Clock clock;
     ISystem* s = nullptr;
 
-    s = new RenderSystem();
-    sm.Add(s);
-
     s = new MovementSystem();
     sm.Add(s);
 
     s = new CollisionSystem();
+    sm.Add(s);
+
+    s = new RenderSystem();
     sm.Add(s);
 
     s = new BehaviorSystem();
