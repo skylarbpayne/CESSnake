@@ -15,6 +15,7 @@
 
 #include "SnakeSystem.h"
 #include "CoinSystem.h"
+#include "ScoringSystem.h"
 
 #include "PositionComponent.h"
 #include "MovementComponent.h"
@@ -47,7 +48,12 @@ bool PlayScene::Load()
     s = new CoinSystem();
     sm.Add(s);
 
+    s = new ScoringSystem();
+    sm.Add(s);
+
     s = nullptr;
+
+    rm.AddFont("resources/Corki-Regular.otf");
 
     ef.Register("Position", []() { return new PositionComponent(); });
     ef.Register("Movement", []() { return new MovementComponent(); });
