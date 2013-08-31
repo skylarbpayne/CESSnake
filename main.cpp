@@ -3,10 +3,10 @@
 
 int main()
 {
-    IScene* s = new PlayScene();
+    IScene* s = new SplashScene();
     Game g;
 
-    g.Init(800, 600, "testing", s);
+    g.Init(800, 600, "Snake", s);
     g.Run();
     g.Quit();
     return g.GetExitStatus();

@@ -82,7 +82,6 @@ void CollisionSystem::Update(unsigned int dt)
 {
     Entity* e1 = nullptr;
     Entity* e2 = nullptr;
-    PositionComponent* p1 = nullptr;
     sf::Vector2f norm;
     std::set<unsigned int> movedEntities = _MovedEntities;
     std::set<unsigned int>::iterator mit;
@@ -99,7 +98,6 @@ void CollisionSystem::Update(unsigned int dt)
 
             e1 = this->GetEntity(*mit);
             e2 = this->GetEntity(*eit);
-            p1 = e1->GetComponent<PositionComponent>("Position");
 
             if(CheckCollision(e1, e2, norm))
             {

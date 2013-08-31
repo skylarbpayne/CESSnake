@@ -8,6 +8,7 @@
 
 #include "ScoringSystem.h"
 #include "Entity.h"
+#include "GameScenes.h"
 #include <string>
 
 /**
@@ -58,7 +59,9 @@ void ScoringSystem::OnMessage(CollisionMessage &msg)
 
         else if(strcmp(e2->GetTag(), "Body") == 0)
         {
-            //end game
+            ChangeSceneMessage sceneMsg;
+            sceneMsg.NextScene = new EndScene(_Score, _GameTime.getElapsedTime());
+            Emit<ChangeSceneMessage>(sceneMsg);
         }
     }
 }
